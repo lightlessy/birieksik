@@ -30,7 +30,7 @@ Fields:
 - description: text, optional
 - status: text, enum: open, filled, cancelled, expired
 - created_at: timestamp
-
+-time_text: text
 ## applications
 
 Stores join applications.
