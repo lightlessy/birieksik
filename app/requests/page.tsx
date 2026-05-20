@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import RequestsMapWrapper from "@/components/RequestsMapWrapper";
+import RequestsMapWrapper from "../components/RequestsMapWrapper";
 
 type RequestWithProfile = {
     id: string;
@@ -18,11 +18,15 @@ type RequestWithProfile = {
     show_location?: boolean | null;
     latitude?: number | null;
     longitude?: number | null;
-    profiles?: { full_name: string | null; email: string | null }[] | null;
+    profiles?: { full_name: string | null; email: string | null }[] | { full_name: string | null; email: string | null } | null;
 };
 
 export default async function RequestsPage() {
     const supabase = await createClient();
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
 
     const { data: requests } = await supabase
         .from("requests")
@@ -32,13 +36,30 @@ export default async function RequestsPage() {
 
     const typedRequests = (requests ?? []) as RequestWithProfile[];
 
+    const applicationStatusByRequest = new Map<string, "pending" | "accepted" | "rejected">();
+
+    if (user && typedRequests.length) {
+        const ids = typedRequests.map((request) => request.id);
+        const { data: applications } = await supabase
+            .from("applications")
+            .select("request_id, status")
+            .eq("applicant_id", user.id)
+            .in("request_id", ids);
+
+        applications?.forEach((application) => {
+            if (application.request_id && application.status) {
+                applicationStatusByRequest.set(application.request_id, application.status);
+            }
+        });
+    }
+
     const mapRequests =
-        requests?.filter(
+        typedRequests.filter(
             (request) =>
                 request.show_location &&
                 request.latitude &&
                 request.longitude
-        ) || [];
+        );
 
     return (
         <main className="min-h-screen bg-neutral-950 px-6 py-10 text-white">
@@ -56,7 +77,7 @@ export default async function RequestsPage() {
 
                 {mapRequests.length > 0 && (
                     <div className="mt-8">
-                        <RequestsMapWrapper requests={mapRequests as any} />
+                        <RequestsMapWrapper requests={mapRequests as unknown[]} />
                     </div>
                 )}
 
@@ -67,36 +88,60 @@ export default async function RequestsPage() {
                         </div>
                     )}
 
-                    {typedRequests.map((request) => (
-                        <Link
-                            key={request.id}
-                            href={`/requests/${request.id}`}
-                            className="block rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:bg-white/10"
-                        >
-                            <div className="flex items-start justify-between gap-4">
-                                <div>
-                                    <h2 className="text-xl font-semibold">{request.title}</h2>
-                                    <p className="mt-2 text-sm text-neutral-400">
-                                        {request.activity_type} · {request.campus}
-                                        {request.show_location && request.location_text
-                                            ? ` · ${request.location_text}`
-                                            : ""}
-                                    </p>
-                                    {request.time_text && (
-                                        <p className="mt-2 text-xs text-neutral-500">Ne zaman: {request.time_text}</p>
-                                    )}
-                                    <p className="mt-2 text-xs text-neutral-500">
-                                        Gönderen: {request.profiles?.[0]?.full_name || request.profiles?.[0]?.email || "Bilinmiyor"}
-                                    </p>
-                                    <p className="mt-3 text-neutral-300 line-clamp-2">{request.description}</p>
-                                </div>
+                    {typedRequests.map((request) => {
+                        const profile = Array.isArray(request.profiles)
+                            ? request.profiles[0]
+                            : request.profiles;
+                        const applicationStatus = applicationStatusByRequest.get(request.id);
 
-                                <div className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-black">
-                                    +{request.needed_count}
+                        return (
+                            <Link
+                                key={request.id}
+                                href={`/requests/${request.id}`}
+                                className="block rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:bg-white/10"
+                            >
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <h2 className="text-xl font-semibold">{request.title}</h2>
+                                        <p className="mt-2 text-sm text-neutral-400">
+                                            {request.activity_type} · {request.campus}
+                                            {request.show_location && request.location_text
+                                                ? ` · ${request.location_text}`
+                                                : ""}
+                                        </p>
+                                        {request.time_text && (
+                                            <p className="mt-2 text-xs text-neutral-500">Ne zaman: {request.time_text}</p>
+                                        )}
+                                        <p className="mt-2 text-xs text-neutral-500">
+                                            Gönderen: {profile?.full_name || profile?.email || "Bilinmiyor"}
+                                        </p>
+                                        {applicationStatus && (
+                                            <span
+                                                className={
+                                                    applicationStatus === "accepted"
+                                                        ? "mt-3 inline-flex rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-200"
+                                                        : applicationStatus === "rejected"
+                                                            ? "mt-3 inline-flex rounded-full border border-rose-400/20 bg-rose-400/10 px-3 py-1 text-xs text-rose-200"
+                                                            : "mt-3 inline-flex rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-xs text-amber-200"
+                                                }
+                                            >
+                                                {applicationStatus === "accepted"
+                                                    ? "Onaylandı"
+                                                    : applicationStatus === "rejected"
+                                                        ? "Bu sefer olmadı"
+                                                        : "Beklemede"}
+                                            </span>
+                                        )}
+                                        <p className="mt-3 text-neutral-300 line-clamp-2">{request.description}</p>
+                                    </div>
+
+                                    <div className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-black">
+                                        +{request.needed_count}
+                                    </div>
                                 </div>
-                            </div>
-                        </Link>
-                    ))}
+                            </Link>
+                        );
+                    })}
                 </div>
 
                 <div className="mt-8">

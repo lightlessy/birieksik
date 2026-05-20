@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 
-const RequestsMap = dynamic(() => import("@/components/RequestsMap"), {
+const RequestsMap = dynamic(() => import("../components/RequestsMap"), {
   ssr: false,
 });
 
