@@ -64,13 +64,16 @@ export default async function RequestsPage() {
     return (
         <main className="min-h-screen bg-neutral-950 px-6 py-10 text-white">
             <div className="mx-auto max-w-3xl">
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex items-start justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold">Aktif istekler</h1>
-                        <p className="mt-2 text-neutral-400">Kampüste eksik kişiyi bul.</p>
+                        <h1 className="text-3xl font-bold tracking-tight">Aktif istekler</h1>
+                        <p className="mt-2 text-zinc-400">Kampüste eksik kişiyi bul.</p>
                     </div>
 
-                    <Link href="/requests/new" className="rounded-2xl bg-white px-4 py-2 font-semibold text-black">
+                    <Link
+                        href="/requests/new"
+                        className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-zinc-200"
+                    >
                         İstek aç
                     </Link>
                 </div>
@@ -145,8 +148,8 @@ export default async function RequestsPage() {
                 </div>
 
                 <div className="mt-8">
-                    <Link href="/dashboard" className="text-sm text-neutral-400 underline">
-                        Dashboard
+                    <Link href="/" className="text-sm text-neutral-400 underline">
+                        Ana sayfaya dön
                     </Link>
                 </div>
             </div>

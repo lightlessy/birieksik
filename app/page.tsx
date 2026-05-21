@@ -16,7 +16,7 @@ export default async function HomePage() {
             <span>İTÜ hesabın aktif</span>
             <span className="text-neutral-500">{user.email}</span>
             <Link href="/dashboard" className="text-white/90 hover:text-white">
-              Dashboard
+              Panelim
             </Link>
           </>
         ) : (
