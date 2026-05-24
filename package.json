@@ -9,8 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@formkit/auto-animate": "^0.9.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.0",
+    "framer-motion": "^12.40.0",
     "leaflet": "^1.9.4",
     "next": "16.2.6",
     "react": "19.2.4",

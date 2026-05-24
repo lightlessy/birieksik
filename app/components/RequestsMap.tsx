@@ -56,7 +56,7 @@ export default function RequestsMap({ requests }: { requests: RequestPin[] }) {
         <MapContainer
           center={[41.047, 29.0]}
           zoom={12}
-          scrollWheelZoom={false}
+          scrollWheelZoom={true}
           zoomControl={false}
           attributionControl={false}
           className="h-full w-full"
